@@ -49,3 +49,123 @@ resultado_tipo = tp(tipo)
 escolha = {"tipo":resultado_tipo, "valor":valor}
 print(f"A sua escolha: {escolha}")
 print(f"Quer fazer uma {resultado_tipo} de {valor}€\n")
+
+#Exercicio 4
+import ast
+def tipo_dado(dado):
+    match dado:
+        case int():
+            return "Número Inteiro"
+        case float():
+            return "Número Decimal"
+        case str():
+            if dado.isdigit():
+                return "String Numérica"
+            else:
+                return "String Textual"
+        case list():
+            return "Lista"
+        case _:
+            return "Tipo Desconhecido"
+print("\n=== Testes de Tipos de Dados ===")
+entrada_user = input("Entrada -> ")
+try:
+    dado_convertido = ast.literal_eval(entrada_user)
+except (ValueError, SyntaxError):
+    dado_convertido = entrada_user
+resultado = tipo_dado(dado_convertido)
+print(f"Saída -> {resultado}\n")
+
+#Exericicio 5
+def analise_mns(mensagem):
+    mns_limpa = mensagem.lower().strip()
+    match mensagem:
+        case n if "olá" in mns_limpa or "bom dia" in mns_limpa:
+            return "Saudação\n"
+        case n if mns_limpa.endswith("?"):
+            return "Pergunta\n"
+        case n if "tchau" in mns_limpa or "adeus" in mns_limpa:
+            return "Despedida\n"
+        case _:
+            return "Mensagem Genérica"
+print("\n===Análise da Mensagem===")
+mns = input("Entrada -> ")
+resultado = analise_mns(mns)
+print(f"Saida -> {resultado}")
+
+#Exercicio 6
+print("\n===Estado do servidor===")
+status = input("Digite o status (ok/erro): ").lower()
+tempo_resposta = int(input("Digite o tempo de resposta (ms): "))
+if status == "erro":
+    print("Servidor indisponível")
+elif status == "ok":
+    if tempo_resposta > 200:
+        print("Servidor lento\n")
+    else:
+        print("Servidor ativo\n")
+else:
+    print("Estado desconhecido\n")
+
+#Exercicio 7
+print("\n===Classificação de produto===")
+categoria = input("Digite a categoria (eletrônico/alimento): ").lower()
+preco = float(input("Digite o preço do produto: "))
+if categoria == "eletrônico":
+    if preco > 1000:
+        print("Produto de luxo\n")
+    else:
+        print("Produto comum\n")
+elif categoria == "alimento":
+    print("Produto alimentar\n") 
+else:
+    print("Categoria desconhecida\n")
+
+#Exercicio 8
+print("\n===Operação matemática===")
+operacao = input("Escolha a operação (soma, subtrai, multiplica, divide): ").lower()
+n1 = float(input("Digite o primeiro número: "))
+n2 = float(input("Digite o segundo número: "))
+match operacao:
+    case "soma":
+        print(f"Resultado: {n1 + n2}\n")
+    case "subtrai":
+        print(f"Resultado: {n1 - n2}\n")
+    case "multiplica":
+        print(f"Resultado: {n1 * n2}\n")
+    case "divide":
+        if n2 != 0:
+            print(f"Resultado: {n1 / n2}\n")
+        else:
+            print("Erro: Não é possível dividir por zero!\n")
+    case _:
+        print("Operação inválida.\n")
+
+#Exericio 9 
+print("\n===Processamento de requisição===")
+metodo = input("Digite o método (GET/POST): ").upper()
+conteudo = input("Digite o conteúdo da requisição (pode deixar vazio): ")
+if metodo == "GET":
+    print("Requisição GET recebida\n")
+elif metodo == "POST":
+    if conteudo: 
+        print("Requisição POST com dados válidos\n")
+    else:
+        print("Requisição POST sem dados\n")
+else:
+    print("Método não suportado\n")
+
+#Exercicio 10
+print("\n===Jogo: Pedra, Papel ou Tesoura===")
+j1 = input("Jogador 1 (pedra, papel, tesoura): ").lower().strip()
+j2 = input("Jogador 2 (pedra, papel, tesoura): ").lower().strip()
+if j1 == j2:
+    print("Empate!\n")
+else:
+    match (j1, j2):
+        case ("pedra", "tesoura") | ("tesoura", "papel") | ("papel", "pedra"):
+            print("Jogador 1 venceu!\n")
+        case ("tesoura", "pedra") | ("papel", "tesoura") | ("pedra", "papel"):
+            print("Jogador 2 venceu!\n")
+        case _:
+            print("Jogada inválida! Escolha entre pedra, papel ou tesoura.\n")
