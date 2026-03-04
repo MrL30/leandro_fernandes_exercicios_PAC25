@@ -97,29 +97,31 @@ print(f"Saida -> {resultado}")
 print("\n===Estado do servidor===")
 status = input("Digite o status (ok/erro): ").lower()
 tempo_resposta = int(input("Digite o tempo de resposta (ms): "))
-if status == "erro":
-    print("Servidor indisponível")
-elif status == "ok":
-    if tempo_resposta > 200:
-        print("Servidor lento\n")
-    else:
-        print("Servidor ativo\n")
-else:
-    print("Estado desconhecido\n")
+match status:
+    case "erro":
+        print("Servidor indisponível")
+    case "ok":
+        if tempo_resposta > 200:
+            print("Servidor lento\n")
+        else:
+            print("Servidor ativo\n")
+    case _:
+        print("Estado desconhecido\n")
 
 #Exercicio 7
 print("\n===Classificação de produto===")
 categoria = input("Digite a categoria (eletrônico/alimento): ").lower()
 preco = float(input("Digite o preço do produto: "))
-if categoria == "eletrônico":
-    if preco > 1000:
-        print("Produto de luxo\n")
-    else:
-        print("Produto comum\n")
-elif categoria == "alimento":
-    print("Produto alimentar\n") 
-else:
-    print("Categoria desconhecida\n")
+match categoria: 
+    case "eletrônico":
+        if preco > 1000:
+            print("Produto de luxo\n")
+        else:
+            print("Produto comum\n")
+    case "alimento":
+        print("Produto alimentar\n") 
+    case _:
+        print("Categoria desconhecida\n")
 
 #Exercicio 8
 print("\n===Operação matemática===")
@@ -145,15 +147,16 @@ match operacao:
 print("\n===Processamento de requisição===")
 metodo = input("Digite o método (GET/POST): ").upper()
 conteudo = input("Digite o conteúdo da requisição (pode deixar vazio): ")
-if metodo == "GET":
-    print("Requisição GET recebida\n")
-elif metodo == "POST":
-    if conteudo: 
-        print("Requisição POST com dados válidos\n")
-    else:
-        print("Requisição POST sem dados\n")
-else:
-    print("Método não suportado\n")
+match metodo:
+    case "GET":
+        print("Requisição GET recebida\n")
+    case "POST":
+        if conteudo: 
+            print("Requisição POST com dados válidos\n")
+        else:
+            print("Requisição POST sem dados\n")
+    case _:
+        print("Método não suportado\n")
 
 #Exercicio 10
 print("\n===Jogo: Pedra, Papel ou Tesoura===")
