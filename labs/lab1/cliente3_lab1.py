@@ -1,45 +1,52 @@
 import socket
 import threading
-import sys
 
 HOST = "127.0.0.1"
 PORTA = 12340
 
-nome_utilizador = input("Introduza o seu nome de utilizador: ")
-
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-try:
-    client_socket.connect((HOST, PORTA))
-except:
-    print("[-] Erro: Não foi possível contactar o servidor base.")
-    sys.exit()
-
-def receber_mensagens():
+def receber_mensagens(sock):
     while True:
         try:
-            mensagem = client_socket.recv(1024).decode('utf-8')
-            if mensagem == "NOME_REQ":
-                client_socket.send(nome_utilizador.encode('utf-8'))
+            dados = sock.recv(1024)
+            if not dados:
+                print("\n[SISTEMA] A conexão com o servidor foi encerrada.")
+                sock.close()
+                break 
+
+            msg = dados.decode('utf-8')
+            if msg == "NOME_REQ":
+                sock.send(nome_user.encode('utf-8'))
             else:
-                print(f"\n{mensagem}")
+                print(f"\n{msg}\n> ", end="")
         except:
-            print("\n[-] Conexão com o servidor perdida.")
-            client_socket.close()
+            print("\n[!] Ocorreu um erro ou a conexão foi perdida.")
+            sock.close()
             break
 
-def escrever_mensagens():
+def iniciar_cliente():
+    global nome_user
+    nome_user = input("Nome de utilizador: ")
+    
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        sock.connect((HOST, PORTA))
+    except:
+        print("[-] Erro: Servidor offline.")
+        return
+
+    threading.Thread(target=receber_mensagens, args=(sock,), daemon=True).start()
+
+    print("[INFO] Digite 'sair' para sair ou '/status' para ver o seu risco.")
+    
     while True:
         try:
-            mensagem = input("")
-            if mensagem.lower() == 'sair' or mensagem.lower() == 'exit':
-                print("[*] A desconectar do servidor...")
-                client_socket.close()
+            msg = input("> ")
+            if msg.lower() == "sair": 
+                sock.close()
                 break
-            client_socket.send(mensagem.encode('utf-8'))
+            sock.send(msg.encode('utf-8'))
         except EOFError:
             break
 
-thread_rececao = threading.Thread(target=receber_mensagens)
-thread_rececao.start()
-
-escrever_mensagens()
+if __name__ == "__main__":
+    iniciar_cliente()

@@ -6,14 +6,18 @@ import os
 
 DIRETORIO_BASE = os.path.dirname(os.path.abspath(__file__))
 PASTA_LOGS = os.path.join(DIRETORIO_BASE, "logs")
+
 if not os.path.exists(PASTA_LOGS):
     os.makedirs(PASTA_LOGS)
-CAMINHO_FICHEIRO_LOG = os.path.join(PASTA_LOGS, "logs_engenharia_social.txt")
+
+CAMINHO_FICHEIRO_LOG = os.path.join(PASTA_LOGS, "logs_gdpr.txt")
+CAMINHO_FICHEIRO_AUDITORIA = os.path.join(PASTA_LOGS, "auditoria_scores.txt")
 
 HOST = "127.0.0.1"
 PORTA = 12340
 
-clientes = {    }
+clientes = {}
+reputacao_utilizadores = {}
 
 def transmitir_mensagem(mensagem, cliente_remetente):
     for cliente in list(clientes.keys()):
@@ -52,7 +56,21 @@ def lidar_cliente(cliente_socket, endereco):
             mensagem = cliente_socket.recv(1024)
             if mensagem:
                 mensagem_texto = mensagem.decode('utf-8')
+                
+                if mensagem_texto == "/status":
+                    risco = reputacao_utilizadores.get(identidade_completa, 0)
+                    cliente_socket.send(f"[SISTEMA] O teu score de risco atual é: {risco}".encode('utf-8'))
+                    continue
+
                 viola_gdpr = auditar_mensagem(mensagem_texto, identidade_completa)
+                
+                if reputacao_utilizadores.get(identidade_completa, 0) > 100:
+                    aviso_ban = "[SISTEMA] Foste banido do servidor por violações de segurança repetidas."
+                    cliente_socket.send(aviso_ban.encode('utf-8'))
+                    transmitir_mensagem(f"[SISTEMA] {nome} foi banido do servidor.".encode('utf-8'), cliente_socket)
+                    remover_cliente(cliente_socket)
+                    break
+
                 if viola_gdpr:
                     alerta = "[SISTEMA] ALERTA GDPR: A sua mensagem foi bloqueada por conter dados pessoais sensíveis."
                     cliente_socket.send(alerta.encode('utf-8'))
@@ -72,40 +90,58 @@ def auditar_mensagem(mensagem, identidade):
     padrao_telefone = r'\b\d{9}\b' 
     padrao_nome = r'(?i)(?:meu nome(?: real)? é|chamo[- ]me)\s+([A-Z][a-zÀ-ÿ]+(?:\s+[A-Z][a-zÀ-ÿ]+)*)'
     padrao_senha = r'(?i)(?:minha (?:senha|password|palavra[- ]passe).*? é)\s+([^\s]+)'
-    encontrou_dados = False
-    dados_detetados = []
-    emails_apanhados = re.findall(padrao_email, mensagem)
     
+    gatilhos_es = [r'urgente', r'imediato', r'clica aqui', r'ganhaste', r'promoção', r'oferta']
+    
+    encontrou_gdpr = False
+    dados_detetados = []
+    infracoes_es = []
+    score_risco = 0
+
+    emails_apanhados = re.findall(padrao_email, mensagem)
     if emails_apanhados:
-        encontrou_dados = True
+        encontrou_gdpr = True
         dados_detetados.append(f"Emails: {emails_apanhados}")
 
     telefones_apanhados = re.findall(padrao_telefone, mensagem)
-    
     if telefones_apanhados:
-        encontrou_dados = True
+        encontrou_gdpr = True
         dados_detetados.append(f"Telefones: {telefones_apanhados}")
     
     nomes_apanhados = re.findall(padrao_nome, mensagem)
-
     if nomes_apanhados:
-        encontrou_dados = True
+        encontrou_gdpr = True
         dados_detetados.append(f"Nomes Reais: {nomes_apanhados}")
 
     senhas_apanhadas = re.findall(padrao_senha, mensagem)
-    
     if senhas_apanhadas:
-        encontrou_dados = True
+        encontrou_gdpr = True
         dados_detetados.append(f"Senhas Expostas: {senhas_apanhadas}")
-    
-    if encontrou_dados:
-        agora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        registo = f"[{agora}] ALVO: {identidade} | DADOS: {', '.join(dados_detetados)} | MSG ORIGINAL: '{mensagem}'\n"
+
+    for gatilho in gatilhos_es:
+        if re.search(gatilho, mensagem, re.IGNORECASE):
+            infracoes_es.append(gatilho)
+            score_risco += 20
+
+    if identidade not in reputacao_utilizadores:
+        reputacao_utilizadores[identidade] = 0
+    reputacao_utilizadores[identidade] += score_risco
+
+    agora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    if encontrou_gdpr:
+        registo_gdpr = f"[{agora}] ALVO: {identidade} | DADOS: {', '.join(dados_detetados)} | MSG ORIGINAL: '{mensagem}'\n"
         with open(CAMINHO_FICHEIRO_LOG, "a", encoding="utf-8") as ficheiro_log:
-            ficheiro_log.write(registo)
+            ficheiro_log.write(registo_gdpr)
         print(f"[!] VIOLAÇÃO GDPR DETETADA de {identidade}. Registado no log.")
-        return True 
-    return False 
+
+    if score_risco > 0:
+        motivos = [f"Gatilho ES: {g}" for g in infracoes_es]
+        registo_auditoria = f"[{agora}] USER: {identidade} | SCORE ADICIONADO: {score_risco} | TOTAL: {reputacao_utilizadores[identidade]} | MOTIVOS: MSG ORIGINAL: '{mensagem}' {', '.join(motivos)}\n"
+        with open(CAMINHO_FICHEIRO_AUDITORIA, "a", encoding="utf-8") as ficheiro_auditoria:
+            ficheiro_auditoria.write(registo_auditoria)
+
+    return encontrou_gdpr
 
 def iniciar_servidor():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
