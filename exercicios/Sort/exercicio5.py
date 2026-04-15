@@ -1,14 +1,12 @@
 palavras = ["banana", "bola", "abacaxi", "arroz", "uva", "urso"]
 grupos = {}
 
-# Agrupamento
 for p in palavras:
     inicial = p[0]
     if inicial not in grupos:
         grupos[inicial] = []
     grupos[inicial].append(p)
 
-# Ordenação manual de cada grupo
 for letra in grupos:
     lista = grupos[letra]
     n_lista = len(lista)
