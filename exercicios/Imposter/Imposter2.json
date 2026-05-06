@@ -1,0 +1,108 @@
+{
+  "port": 5000,
+  "protocol": "http",
+  "stubs": [
+    {
+      "predicates": [
+        { "equals": { "method": "POST", "path": "/api/alunos" } },
+        { "exists": { "body": { "nome": true, "idade": true, "curso": true } } },
+        { "range": { "body": { "idade": { "lt": 10 } } } }
+      ],
+      "responses": [{ "is": { "statusCode": 400, "body": { "error": "Idade mínima não atingida" } } }]
+    },
+    {
+      "predicates": [
+        { "equals": { "method": "POST", "path": "/api/alunos" } },
+        { "contains": { "body": { "curso": "Inexistente" } } }
+      ],
+      "responses": [{ "is": { "statusCode": 404, "body": { "error": "Curso não encontrado" } } }]
+    },
+    {
+      "predicates": [{ "equals": { "method": "POST", "path": "/api/alunos" } }],
+      "responses": [{ "is": { "statusCode": 201, "body": { "message": "Aluno adicionado" } } }]
+    },
+    {
+      "predicates": [
+        { "equals": { "method": "DELETE", "path": "/api/alunos/1" } },
+        { "not": { "equals": { "headers": { "Role": "Admin" } } } }
+      ],
+      "responses": [{ "is": { "statusCode": 403, "body": { "error": "Apenas administradores podem remover" } } }]
+    },
+
+    {
+      "predicates": [
+        { "equals": { "method": "POST", "path": "/api/produtos" } },
+        { "range": { "body": { "quantidade": { "lt": 0 } } } }
+      ],
+      "responses": [{ "is": { "statusCode": 400, "body": { "error": "Valor inválido" } } }]
+    },
+    {
+      "predicates": [
+        { "equals": { "method": "DELETE", "path": "/api/produtos/1" } },
+        { "contains": { "body": { "stock": 10 } } } 
+      ],
+      "responses": [{ "is": { "statusCode": 400, "body": { "error": "Apenas possível se o stock for zero" } } }]
+    },
+
+    {
+      "predicates": [
+        { "equals": { "method": "POST", "path": "/api/reservas" } },
+        { "contains": { "body": { "quarto": "cheio" } } }
+      ],
+      "responses": [{ "is": { "statusCode": 409, "body": { "error": "Sem disponibilidade" } } }]
+    },
+
+    {
+      "predicates": [
+        { "equals": { "method": "POST", "path": "/api/emprestimos" } },
+        { "contains": { "body": { "livro_id": "emprestado" } } }
+      ],
+      "responses": [{ "is": { "statusCode": 409, "body": { "error": "Livro já emprestado" } } }]
+    },
+
+    {
+      "predicates": [
+        { "equals": { "method": "POST", "path": "/api/funcionarios" } },
+        { "range": { "body": { "salario": { "lt": 760 } } } }
+      ],
+      "responses": [{ "is": { "statusCode": 400, "body": { "error": "Salário inferior ao mínimo de 760€" } } }]
+    },
+    {
+      "predicates": [
+        { "equals": { "method": "DELETE", "path": "/api/funcionarios/1" } },
+        { "contains": { "body": { "tarefas": "pendentes" } } }
+      ],
+      "responses": [{ "is": { "statusCode": 400, "body": { "error": "Funcionário tem tarefas pendentes" } } }]
+    },
+
+    {
+      "predicates": [
+        { "equals": { "method": "POST", "path": "/api/tarefas" } },
+        { "deepEquals": { "body": { "titulo": "" } } }
+      ],
+      "responses": [{ "is": { "statusCode": 400, "body": { "error": "Título vazio" } } }]
+    },
+    {
+      "predicates": [
+        { "equals": { "method": "DELETE", "path": "/api/tarefas/1" } },
+        { "not": { "contains": { "body": { "estado": "concluída" } } } }
+      ],
+      "responses": [{ "is": { "statusCode": 400, "body": { "error": "Apenas tarefas concluídas podem ser eliminadas" } } }]
+    },
+
+    {
+      "predicates": [
+        { "equals": { "method": "POST", "path": "/api/pedidos" } },
+        { "contains": { "body": { "cliente_id": "999" } } }
+      ],
+      "responses": [{ "is": { "statusCode": 404, "body": { "error": "Cliente inexistente" } } }]
+    },
+    {
+      "predicates": [
+        { "equals": { "method": "DELETE", "path": "/api/pedidos/1" } },
+        { "not": { "contains": { "body": { "estado": "Em processamento" } } } }
+      ],
+      "responses": [{ "is": { "statusCode": 400, "body": { "error": "Cancelamento apenas permitido em processamento" } } }]
+    }
+  ]
+}
