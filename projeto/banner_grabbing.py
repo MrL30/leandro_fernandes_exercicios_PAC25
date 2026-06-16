@@ -4,10 +4,10 @@ from datetime import datetime
 
 VULNERABILIDADES_CONHECIDAS = {
     "vsFTPd 2.3.4": "Vulneravel a CVE-2011-2523",
-    "OpenSSH 4.7p1": "Vulnerável a CVE-2008-1657 (Debian OpenSSL flaw)",
+    "OpenSSH_4.7p1": "Vulnerável a CVE-2008-1657 (Debian OpenSSL flaw)",
     "Apache/2.2.8": "Várias CVEs (CVE-2008-0005, CVE-2007-6421)",
     "ProFTPD 1.3.1": "Vulnerável a CVE-2008-4242",
-    "mysql 5.0.51a": "Vulnerável a CVE-2008-2079 (criação de tabelas)",
+    "5.0.51a": "Vulnerável a CVE-2008-2079 (MySQL, criação de tabelas)",
     "Samba 3.0.20": "Vulnerável a CVE-2007-2447 (usermap_script)"
 }
 
@@ -33,8 +33,11 @@ def grab_banner(ip, porta, timeout=2.0):
     try:
         s.connect((ip, porta))
         
-        banner_bytes = s.recv(1024)
-        banner = banner_bytes.decode('utf-8', errors='ignore').strip()
+        try:
+            banner_bytes = s.recv(1024)
+            banner = banner_bytes.decode('utf-8', errors='ignore').strip()
+        except socket.timeout:
+            banner = ""
         
         if not banner or len(banner) < 5:
             if porta in [21, 25, 110]:

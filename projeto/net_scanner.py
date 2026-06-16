@@ -93,5 +93,7 @@ def main():
     print("-" * 60)
     print("\n[+] Scan concluído!\n")
 
-if __name__ == "__main__":
+if __name__ != "__main__":
+    pass
+else:
     main()
